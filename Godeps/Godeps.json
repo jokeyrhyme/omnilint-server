@@ -11,6 +11,19 @@
 			"ImportPath": "github.com/go-martini/martini",
 			"Comment": "v1.0-27-g6d22115",
 			"Rev": "6d22115736ff94392c11684f7cbe1a5143430ee3"
+		},
+		{
+			"ImportPath": "github.com/yvasiyarov/go-metrics",
+			"Rev": "b23f8b043b6492e7aef34eb11aab268a5c89c14b"
+		},
+		{
+			"ImportPath": "github.com/yvasiyarov/gorelic",
+			"Comment": "v0.0.6-6-ged461c0",
+			"Rev": "ed461c0552ffe5e4bee53eb23c0edacc13c82555"
+		},
+		{
+			"ImportPath": "github.com/yvasiyarov/newrelic_platform_go",
+			"Rev": "2d5b3d6e6db42e361ca5a5b6376a1368f7067236"
 		}
 	]
 }
