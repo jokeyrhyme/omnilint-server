@@ -11,6 +11,7 @@ Send your code to this server to have it checked for errors, warnings, etc.
 Code is scanned with:
 
 - the basic parser: `php -l`
+- [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer): `phpcs`
 
 ## HTTP routes
 
@@ -27,6 +28,15 @@ Code is scanned with:
 ```shell
 goxc -bc="linux"
 cp $GOPATH/bin/omnilint-server-xc/snapshot/omnilint-server_linux_amd64.tar.gz .
-docker build .
+docker build -t IMAGE .
 rm omnilint-server_linux_amd64.tar.gz
 ```
+
+## Running the Docker image
+
+```shell
+docker run -t -i -p 3000:3000 IMAGE
+```
+
+- use `-e` to set NEWRELIC_LICENSE and NEWRELIC_NAME environment variables (if
+  you want to integrate with New Relic)
