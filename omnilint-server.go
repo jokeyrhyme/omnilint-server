@@ -2,20 +2,35 @@ package main
 
 import (
 	"bufio"
-  "github.com/jokeyrhyme/omnilint-server/php"
+  "encoding/json"
 	"net/http"
 	"os"
 	"github.com/go-martini/martini"
 	"github.com/yvasiyarov/gorelic"
 )
 
+type JsonSerializable interface {
+  ToJson() string
+}
+
 func CheckPhp(res http.ResponseWriter, req *http.Request) (int, string) {
-  result, err := php.ParseSyntax(bufio.NewReader(req.Body))
+  // result, err := ParseSyntax(bufio.NewReader(req.Body))
+  result, err := CodeSniffer(bufio.NewReader(req.Body))
 	if err != nil {
 		return 500, err.Error()
 	}
-  if (result != "") {
-    return 200, result
+  if len(result) > 0 {
+    res.Header().Set("Content-Type", "application/json")
+    report := new(Report)
+    for _, item := range result {
+      report.AddItem(item)
+    }
+    var body []byte
+    body, err = json.Marshal(report)
+    if err != nil {
+      return 500, err.Error()
+    }
+    return 200, string(body[:]);
   }
 	return 204, ""
 }
