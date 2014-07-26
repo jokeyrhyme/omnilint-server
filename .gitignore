@@ -1,3 +1,6 @@
 # godeps
 /Godeps/_workspace
 /Godeps/Readme
+
+# gin
+gin-bin
