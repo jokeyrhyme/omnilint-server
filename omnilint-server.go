@@ -8,10 +8,10 @@ import (
 
 func main() {
   var (
-    newrelic_license = os.Getenv("NEWRELIC_LICENSE")
-    newrelic_name = os.Getenv("NEWRELIC_NAME")
+		newrelicLicense = os.Getenv("NEWRELIC_LICENSE")
+		newrelicName    = os.Getenv("NEWRELIC_NAME")
   )
-  if newrelic_license != "" && newrelic_name != "" {
+	if newrelicLicense != "" && newrelicName != "" {
   agent := gorelic.NewAgent()
   agent.Verbose = true
   agent.NewrelicLicense = os.Getenv("NEWRELIC_LICENSE")
