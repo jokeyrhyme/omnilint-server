@@ -13,6 +13,12 @@ type ReportItem struct {
   Column int `json:"column"`
 }
 
+func (i *ReportItem) New() {
+  i.Severity, i.Line, i.Column = 0, 0, 0
+  i.Message, i.Source = "", ""
+  i.Type = "ERROR"
+}
+
 type ReportTotals struct {
   Errors int `json:"errors"`
   Warnings int `json:"warnings"`
@@ -24,7 +30,7 @@ type Report struct {
 }
 
 func (r *Report) New() {
-  r.Totals.Errors = 0;
+  r.Totals.Errors = 0
   r.Errors = make([]ReportItem, 0)
 }
 
@@ -35,5 +41,5 @@ func (r *Report) AddItem(item ReportItem) {
 
 func (r *Report) ToJson() string {
   output, _ := json.Marshal(r)
-  return string(output[:]);
+  return string(output[:])
 }
