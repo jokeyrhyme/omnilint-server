@@ -42,7 +42,7 @@ func main() {
 		if contentType == "application/x-php" {
 			return php(res, req)
 		}
-		return 400, "Content-Type not currently supported"
+		return 415, "Content-Type not currently supported"
 	})
 
 	m.Run()
@@ -59,10 +59,10 @@ func php(res http.ResponseWriter, req *http.Request) (int, string) {
     out bytes.Buffer
   )
 	cmd.Stdout = &out
+	cmd.Stderr = &out
 	err = cmd.Run()
 	if err != nil {
-//		return 500, err.Error()
-		return 500, out.String()
+		return 200, out.String() + err.Error()
 	}
-	return 200, out.String()
+	return 204, ""
 }
