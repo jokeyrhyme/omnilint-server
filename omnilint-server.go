@@ -1,14 +1,24 @@
 package main
 
 import (
-  "bytes"
 	"bufio"
+  "github.com/jokeyrhyme/omnilint-server/php"
 	"net/http"
 	"os"
-	"os/exec"
 	"github.com/go-martini/martini"
 	"github.com/yvasiyarov/gorelic"
 )
+
+func CheckPhp(res http.ResponseWriter, req *http.Request) (int, string) {
+  result, err := php.ParseSyntax(bufio.NewReader(req.Body))
+	if err != nil {
+		return 500, err.Error()
+	}
+  if (result != "") {
+    return 200, result
+  }
+	return 204, ""
+}
 
 func main() {
 	var (
@@ -40,29 +50,10 @@ func main() {
 			return 400, "Content-Type header is mandatory"
 		}
 		if contentType == "application/x-php" {
-			return php(res, req)
+			return CheckPhp(res, req)
 		}
 		return 415, "Content-Type not currently supported"
 	})
 
 	m.Run()
-}
-
-func php(res http.ResponseWriter, req *http.Request) (int, string) {
-	path, err := exec.LookPath("php")
-	if err != nil {
-		return 500, err.Error()
-	}
-	cmd := exec.Command(path, "-l")
-	cmd.Stdin = bufio.NewReader(req.Body)
-	var (
-    out bytes.Buffer
-  )
-	cmd.Stdout = &out
-	cmd.Stderr = &out
-	err = cmd.Run()
-	if err != nil {
-		return 200, out.String() + err.Error()
-	}
-	return 204, ""
 }
