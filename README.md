@@ -2,6 +2,9 @@
 
 Send your code to this server to have it checked for errors, warnings, etc.
 
+This is my first half-serious use of Google's Go, so please tell me where the
+code can improve, etc.
+
 ## Language Support
 
 ### PHP
@@ -42,5 +45,12 @@ rm omnilint-server_linux_amd64.tar.gz
 docker run -t -i -p 3000:3000 IMAGE
 ```
 
-- use `-e` to set NEWRELIC_LICENSE and NEWRELIC_NAME environment variables (if
-  you want to integrate with New Relic)
+- use `-e` to set environment variables as required
+
+## Environment Variables
+
+- `PORT` and `HOST` to control interface binding (default is `localhost:3000`)
+
+- `NEWRELIC_LICENSE` and `NEWRELIC_NAME` for integration with [New Relic](http://newrelic.com/)
+
+- `CORS_ORIGINS` (with comma-separated origins) to enable [CORS HTTP headers](http://www.html5rocks.com/en/tutorials/cors/)

@@ -13,6 +13,10 @@
 			"Rev": "6d22115736ff94392c11684f7cbe1a5143430ee3"
 		},
 		{
+			"ImportPath": "github.com/martini-contrib/cors",
+			"Rev": "c3837f3383e5a50b5c31ba3c27d9bb467104cd45"
+		},
+		{
 			"ImportPath": "github.com/yvasiyarov/go-metrics",
 			"Rev": "b23f8b043b6492e7aef34eb11aab268a5c89c14b"
 		},

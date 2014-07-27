@@ -2,10 +2,13 @@ package main
 
 import (
 	"io/ioutil"
+  "log"
 	"net/http"
 	"os"
-
+  "strings"
+  "reflect"
 	"github.com/go-martini/martini"
+  "github.com/martini-contrib/cors"
 	"github.com/yvasiyarov/gorelic"
 )
 
@@ -37,6 +40,9 @@ func main() {
 		return "Hello world!"
 	})
 
+  var logger *log.Logger
+  logger = m.Injector.Get(reflect.TypeOf(logger)).Interface().(*log.Logger)
+
 	m.Post("**", func(res http.ResponseWriter, req *http.Request) (int, string) {
 		var (
 			contentTypeHeader []string
@@ -58,6 +64,16 @@ func main() {
 		}
 		return 415, "Content-Type not currently supported"
 	})
+
+  var corsOrigins = os.Getenv("CORS_ORIGINS")
+  if corsOrigins != "" {
+    logger.Println("activating CORS: " + corsOrigins)
+    m.Use(cors.Allow(&cors.Options{
+      AllowOrigins: strings.Split(corsOrigins, ","),
+      AllowMethods: []string{"GET", "POST"},
+      AllowHeaders: []string{"Origin", "Content-Type"},
+    }))
+  }
 
 	m.Run()
 }
