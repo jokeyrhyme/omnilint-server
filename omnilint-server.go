@@ -1,15 +1,22 @@
 package main
 
 import (
-  "io/ioutil"
+	"io/ioutil"
 	"net/http"
 	"os"
+
 	"github.com/go-martini/martini"
 	"github.com/yvasiyarov/gorelic"
 )
 
-type JsonSerializable interface {
-  ToJson() string
+func toMapStringString(m map[string][]string) map[string]string {
+	out := make(map[string]string)
+	for k, v := range m {
+		if len(v) > 0 {
+			out[k] = v[0]
+		}
+	}
+	return out
 }
 
 func main() {
@@ -41,12 +48,13 @@ func main() {
 		} else {
 			return 400, "Content-Type header is mandatory"
 		}
-    body, err := ioutil.ReadAll(req.Body);
-    if err != nil {
-      return 400, "Invalid request body"
-    }
+		body, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			return 400, "Invalid request body"
+		}
 		if contentType == "application/x-php" {
-			return CheckPhp(res, string(body[:]))
+			qsa := toMapStringString(req.URL.Query())
+			return checkPhp(res, string(body[:]), qsa)
 		}
 		return 415, "Content-Type not currently supported"
 	})

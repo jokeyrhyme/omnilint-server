@@ -1,126 +1,127 @@
 package main
 
 import (
-  "bytes"
-  "encoding/json"
-  "net/http"
-  "os/exec"
-  "regexp"
-  "strconv"
-  "strings"
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"os/exec"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
-type CodeSnifferReport struct {
-  Totals ReportTotals `json:"totals"`
-  Files struct {
-    STDIN struct {
-      Errors int `json:"errors"`
-      Warnings int `json:"warnings"`
-      Messages []ReportItem `json:"messages"`
-    } `json:"STDIN"`
-  } `json:"files"`
+type codeSnifferReport struct {
+	Totals reportTotals `json:"totals"`
+	Files  struct {
+		STDIN struct {
+			Errors   int          `json:"errors"`
+			Warnings int          `json:"warnings"`
+			Messages []reportItem `json:"messages"`
+		} `json:"STDIN"`
+	} `json:"files"`
 }
 
-func (r *CodeSnifferReport) ToJson() string {
-  output, _ := json.Marshal(r)
-  return string(output[:]);
-}
-
-func ParseSyntax(code string) ([]ReportItem, error) {
-  // borrowing liberally from:
-  // https://github.com/AtomLinter/linter-php/blob/master/lib/linter-php.coffee
+func parseSyntax(code string) ([]reportItem, error) {
+	// borrowing liberally from:
+	// https://github.com/AtomLinter/linter-php/blob/master/lib/linter-php.coffee
 	path, err := exec.LookPath("php")
 	if err != nil {
-		return make([]ReportItem, 0), err
+		return make([]reportItem, 0), err
 	}
 	cmd := exec.Command(path, "-l", "-n", "-d display_errors=On", "-d log_errors=Off")
 	cmd.Stdin = strings.NewReader(code)
 	var (
-    out bytes.Buffer
-  )
+		out bytes.Buffer
+	)
 	cmd.Stdout = &out
 	cmd.Stderr = &out
 	err = cmd.Run()
 	if err != nil {
-    var (
-      matchingLines [][]string
-      results []ReportItem
-      result ReportItem
-    )
-    re := regexp.MustCompile(`(Parse|Fatal) (?P<error>error):(\s*(?P<type>parse|syntax) error,?)?\s*(?P<message>(unexpected '(?P<near>[^']+)')?.*) in .*? on line (?P<line>\d+)`);
-    matchingLines = re.FindAllStringSubmatch(out.String(), -1);
-    results = make([]ReportItem, 0)
-    for _, match := range matchingLines {
-      result = ReportItem{}
-      result.Source = match[1] // Parse|Fatal
-      result.Message = match[5] // <message>
-      if match[8] != "" {
-        result.Line, _ = strconv.Atoi(match[8]) // <line>
-      }
-      results = append(results, result)
-    }
+		var (
+			matchingLines [][]string
+			results       []reportItem
+			result        reportItem
+		)
+		re := regexp.MustCompile(`(Parse|Fatal) (?P<error>error):(\s*(?P<type>parse|syntax) error,?)?\s*(?P<message>(unexpected '(?P<near>[^']+)')?.*) in .*? on line (?P<line>\d+)`)
+		matchingLines = re.FindAllStringSubmatch(out.String(), -1)
+		results = make([]reportItem, 0)
+		for _, match := range matchingLines {
+			result = reportItem{}
+			result.Source = match[1]  // Parse|Fatal
+			result.Message = match[5] // <message>
+			if match[8] != "" {
+				result.Line, _ = strconv.Atoi(match[8]) // <line>
+			}
+			results = append(results, result)
+		}
 		return results, nil
 	}
-	return make([]ReportItem, 0), nil
+	return make([]reportItem, 0), nil
 }
 
-func CodeSniffer(code string) ([]ReportItem, error) {
+func codeSniffer(code string, options map[string]string) ([]reportItem, error) {
 	path, err := exec.LookPath("phpcs")
 	if err != nil {
-		return make([]ReportItem, 0), err
+		return make([]reportItem, 0), err
 	}
-	cmd := exec.Command(path, "--report=json")
+	if options["phpcs.standard"] != "" {
+		re := regexp.MustCompile(`\W`)
+		options["phpcs.standard"] = re.ReplaceAllLiteralString(options["phpcs.standard"], "")
+	} else {
+		options["phpcs.standard"] = "PSR2"
+	}
+	cmd := exec.Command(path, "--report=json", "--standard="+options["phpcs.standard"])
 	cmd.Stdin = strings.NewReader(code)
 	var (
-    out bytes.Buffer
-  )
+		out bytes.Buffer
+	)
 	cmd.Stdout = &out
 	cmd.Stderr = &out
 	err = cmd.Run()
 	if err != nil {
-    var (
-      report CodeSnifferReport
-    )
-    err = json.Unmarshal([]byte(out.String()), &report)
-    if err != nil {
-      return make([]ReportItem, 0), err
-    }
-    return report.Files.STDIN.Messages, nil
+		var (
+			report codeSnifferReport
+		)
+		err = json.Unmarshal([]byte(out.String()), &report)
+		if err != nil {
+			return make([]reportItem, 0), err
+		}
+		return report.Files.STDIN.Messages, nil
 	}
-	return make([]ReportItem, 0), nil
+	return make([]reportItem, 0), nil
 }
 
-func CheckPhp(res http.ResponseWriter, code string) (int, string) {
-  var (
-    someResults, results []ReportItem
-    err error
-  )
-  results = make([]ReportItem, 0)
+func checkPhp(res http.ResponseWriter, code string, params map[string]string) (int, string) {
+	var (
+		someResults, results []reportItem
+		err                  error
+	)
+	results = make([]reportItem, 0)
 
-  someResults, err = ParseSyntax(code)
+	someResults, err = parseSyntax(code)
 	if err != nil {
 		return 500, err.Error()
 	}
-  results = append(results, someResults...);
+	results = append(results, someResults...)
 
-  someResults, err = CodeSniffer(code)
+	someResults, err = codeSniffer(code, params)
 	if err != nil {
 		return 500, err.Error()
 	}
-  results = append(results, someResults...);
+	results = append(results, someResults...)
 
-  if len(results) > 0 {
-    res.Header().Set("Content-Type", "application/json")
-    report := new(Report)
-    for _, item := range results {
-      report.AddItem(item)
-    }
-    var body []byte
-    body, err = json.Marshal(report)
-    if err != nil {
-      return 500, err.Error()
-    }
-    return 200, string(body[:]);
-  }
+	if len(results) > 0 {
+		res.Header().Set("Content-Type", "application/json")
+		report := new(report)
+		for _, item := range results {
+			report.AddItem(item)
+		}
+		var body []byte
+		body, err = json.Marshal(report)
+		if err != nil {
+			return 500, err.Error()
+		}
+		return 200, string(body[:])
+	}
 	return 204, ""
 }
