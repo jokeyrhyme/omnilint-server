@@ -13,6 +13,10 @@ Code is scanned with:
 - the basic parser: `php -l`
 - [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer): `phpcs`
 
+#### Options (Query String Arguments)
+
+- `phpcs.standard`: defaults to "PSR2"
+
 ## HTTP routes
 
 ### POST *
