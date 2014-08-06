@@ -39,9 +39,8 @@ Code is scanned with:
 
 ```shell
 gox -osarch="linux/amd64"
-cp $GOPATH/bin/omnilint-server-xc/snapshot/omnilint-server_linux_amd64.tar.gz .
 docker build -t IMAGE .
-rm omnilint-server_linux_amd64.tar.gz
+rm omnilint-server_linux_amd64
 ```
 
 ## Running the Docker image
