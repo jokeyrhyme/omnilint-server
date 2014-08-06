@@ -15,8 +15,9 @@ WORKDIR /usr/src/php
 RUN composer.phar install
 RUN ln -s /usr/src/php/vendor/bin/phpcs /usr/local/bin/phpcs
 
-ADD omnilint-server_linux_amd64.tar.gz /opt
-WORKDIR /opt
+RUN mkdir -p /opt/omnilint-server
+COPY omnilint-server_linux_amd64 /opt/omnilint-server/
+WORKDIR /opt/omnilint-server
 
 #ENV NEWRELIC_LICENSE ""
 #ENV NEWRELIC_NAME ""
@@ -24,4 +25,4 @@ WORKDIR /opt
 ENV PORT 3000
 EXPOSE 3000
 
-CMD /opt/omnilint-server_linux_amd64/omnilint-server
+CMD /opt/omnilint-server/omnilint-server_linux_amd64

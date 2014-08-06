@@ -28,12 +28,17 @@ Code is scanned with:
 - expects `Content-Type` HTTP header to be set
 - expects the code to be scanned to occupy the entire HTTP request body
 
+## Development
+
+- this project uses [godep](https://github.com/tools/godep) to manage
+  package dependencies
+
 ## Building the Docker image
 
-- install [goxc](https://github.com/laher/goxc) and set it up for 64-bit Linux
+- install [gox](https://github.com/mitchellh/gox) and set it up for 64-bit Linux
 
 ```shell
-goxc -bc="linux"
+gox -osarch="linux/amd64"
 cp $GOPATH/bin/omnilint-server-xc/snapshot/omnilint-server_linux_amd64.tar.gz .
 docker build -t IMAGE .
 rm omnilint-server_linux_amd64.tar.gz
