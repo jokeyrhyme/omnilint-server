@@ -10,13 +10,13 @@ WORKDIR /usr/local/bin
 RUN apt-get install curl -y
 RUN curl -sS https://getcomposer.org/installer | php
 
-COPY php/composer.json /usr/src/php/composer.json
+ADD php/composer.json /usr/src/php/composer.json
 WORKDIR /usr/src/php
 RUN composer.phar install
 RUN ln -s /usr/src/php/vendor/bin/phpcs /usr/local/bin/phpcs
 
 RUN mkdir -p /opt/omnilint-server
-COPY omnilint-server_linux_amd64 /opt/omnilint-server/
+ADD omnilint-server_linux_amd64 /opt/omnilint-server/
 WORKDIR /opt/omnilint-server
 
 #ENV NEWRELIC_LICENSE ""
